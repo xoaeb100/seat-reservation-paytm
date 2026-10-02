@@ -11,7 +11,6 @@ export class ShowsService {
   constructor(private readonly dataSource: DataSource) {}
 
   async create(dto: CreateShowDto) {
-    console.log('Creating show with data:', dto);
     const seatNumbers = dto.seats.map((seat) => seat.trim());
 
     if (seatNumbers.some((seat) => seat.length === 0)) {

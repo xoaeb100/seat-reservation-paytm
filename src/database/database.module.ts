@@ -15,19 +15,12 @@ import { UserShowLock } from './entities/user-show-lock.entity';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.getOrThrow<string>('DB_HOST'),
-        port: configService.getOrThrow<number>('DB_PORT'),
+        port: Number(configService.getOrThrow<string>('DB_PORT')),
         database: configService.getOrThrow<string>('DB_NAME'),
         username: configService.getOrThrow<string>('DB_USER'),
         password: configService.getOrThrow<string>('DB_PASSWORD'),
-        autoLoadEntities: true,
 
-       entities: [
-          Show,
-          Seat,
-          Reservation,
-          ReservationSeat,
-          UserShowLock,
-        ],
+        entities: [Show, Seat, Reservation, ReservationSeat, UserShowLock],
         synchronize: false,
       }),
     }),
