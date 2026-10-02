@@ -1,0 +1,2 @@
+docker exec -it seat-reservation-postgres psql -U postgres -d seat_reservation
+

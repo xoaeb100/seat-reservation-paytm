@@ -2,6 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { Show } from './entities/show.entity';
+import { Seat } from './entities/seat.entity';
+import { Reservation } from './entities/reservation.entity';
+import { ReservationSeat } from './entities/reservation-seat.entity';
+import { UserShowLock } from './entities/user-show-lock.entity';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -16,8 +21,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.getOrThrow<string>('DB_PASSWORD'),
         autoLoadEntities: true,
 
-        // IMPORTANT:
-        // We will use migrations once entities are introduced.
+       entities: [
+          Show,
+          Seat,
+          Reservation,
+          ReservationSeat,
+          UserShowLock,
+        ],
         synchronize: false,
       }),
     }),
