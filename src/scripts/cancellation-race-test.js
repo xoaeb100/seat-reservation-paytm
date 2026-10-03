@@ -42,7 +42,7 @@ async function getShow() {
 }
 
 async function reserve(userId, idempotencyKey) {
-  return request(`/reserve/${SHOW_ID}`, {
+  return request(`/shows/${SHOW_ID}/reserve`, {
     method: 'POST',
     headers: auth(userId),
     body: JSON.stringify({
@@ -53,7 +53,7 @@ async function reserve(userId, idempotencyKey) {
 }
 
 async function cancel(userId, reservationId) {
-  return request(`/reserve/${reservationId}/cancel`, {
+  return request(`/reservations/${reservationId}/cancel`, {
     method: 'POST',
     headers: auth(userId),
   });

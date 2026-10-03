@@ -16,7 +16,7 @@ if (!SHOW_ID) {
 }
 
 async function reserve(userId, seats, index, group) {
-  const response = await fetch(`${BASE_URL}/reserve/${SHOW_ID}`, {
+  const response = await fetch(`${BASE_URL}/shows/${SHOW_ID}/reserve`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

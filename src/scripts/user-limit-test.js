@@ -12,7 +12,7 @@ if (!SHOW_ID) {
 async function reserve(index) {
   const seat = `A${index + 1}`;
 
-  const response = await fetch(`${BASE_URL}/reserve/${SHOW_ID}`, {
+  const response = await fetch(`${BASE_URL}/shows/${SHOW_ID}/reserve`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
