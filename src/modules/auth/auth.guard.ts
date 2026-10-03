@@ -37,9 +37,9 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    // if (!token.startsWith('user-') || token.length <= 5) {
-    //   throw new UnauthorizedException('Invalid authentication token');
-    // }
+    if (!token.startsWith('user-') || token.length <= 5) {
+      throw new UnauthorizedException('Invalid authentication token');
+    }
 
     request.user = {
       id: token,

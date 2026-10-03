@@ -78,7 +78,6 @@ function assertNo5xx(results, name) {
 }
 
 async function attackHotSeat(seat, prefix) {
-  console.log('seat', seat, 'prefix', prefix);
   console.log(`\n🔥 HOT SEAT ATTACK: ${seat}`);
 
   const results = await Promise.all(
@@ -102,9 +101,6 @@ async function attackHotSeat(seat, prefix) {
   }
 
   console.log(`✅ ${seat}: exactly one winner`);
-  console.log(`pre Winner: ${successes}`);
-
-  console.log(`Winner: ${successes[0].body.id}`);
   return successes[0].body.id;
 }
 
