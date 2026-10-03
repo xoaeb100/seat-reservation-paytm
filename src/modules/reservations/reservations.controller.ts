@@ -19,7 +19,7 @@ export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) {}
 
   @UseGuards(AuthGuard)
-  @Post('shows/:id/reserve')
+  @Post('reserve/:id')
   @HttpCode(HttpStatus.CREATED)
   reserve(
     @Param('id') showId: string,

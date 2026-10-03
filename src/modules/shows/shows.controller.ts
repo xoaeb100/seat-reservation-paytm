@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -21,5 +23,10 @@ export class ShowsController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createShowDto: CreateShowDto) {
     return this.showsService.create(createShowDto);
+  }
+
+  @Get(':id')
+  getById(@Param('id') showId: string) {
+    return this.showsService.getById(showId);
   }
 }

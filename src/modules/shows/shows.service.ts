@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-
+import { NotFoundException } from '@nestjs/common';
 import { Show } from '../../database/entities/show.entity';
 import { Seat } from '../../database/entities/seat.entity';
 import { SeatStatus } from '../../database/enums/seat-status.enum';
@@ -53,5 +53,57 @@ export class ShowsService {
         })),
       };
     });
+  }
+
+  async getById(showId: string) {
+    const rows = await this.dataSource.query(
+      `
+    SELECT
+      "id",
+      "seatNumber",
+      "status"
+    FROM "seats"
+    WHERE "showId" = $1
+    ORDER BY "seatNumber" ASC
+    `,
+      [showId],
+    );
+
+    if (rows.length === 0) {
+      const showExists = await this.dataSource.query(
+        `
+      SELECT "id"
+      FROM "shows"
+      WHERE "id" = $1
+      `,
+        [showId],
+      );
+
+      if (showExists.length === 0) {
+        throw new NotFoundException('Show not found');
+      }
+    }
+
+    const counts = {
+      available: 0,
+      held: 0,
+      confirmed: 0,
+    };
+
+    for (const seat of rows) {
+      counts[seat.status as keyof typeof counts]++;
+    }
+
+    return {
+      id: showId,
+      total_seats: rows.length,
+      available: counts.available,
+      held: counts.held,
+      confirmed: counts.confirmed,
+      seats: rows.map((seat) => ({
+        seat: seat.seatNumber,
+        status: seat.status,
+      })),
+    };
   }
 }

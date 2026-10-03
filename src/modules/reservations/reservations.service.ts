@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { createHash } from 'crypto';
 
@@ -15,12 +16,17 @@ import { SeatStatus } from '../../database/enums/seat-status.enum';
 import { DataSource, EntityManager } from 'typeorm';
 import { ReserveSeatsDto } from './dto/reserve-seats.dto';
 import { RESERVATION_ERRORS } from './errors/reservation-error';
+import { validate as isUUID } from 'uuid';
 
 @Injectable()
 export class ReservationsService {
   constructor(private readonly dataSource: DataSource) {}
 
   async reserve(showId: string, userId: string, dto: ReserveSeatsDto) {
+    if (!isUUID(showId)) {
+      throw new BadRequestException('Invalid show ID');
+    }
+
     return this.dataSource.transaction(async (manager) => {
       /*
        * 1. Verify that the show exists.
