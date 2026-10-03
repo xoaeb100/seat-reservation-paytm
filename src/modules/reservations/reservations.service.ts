@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { createHash } from 'crypto';
 
@@ -252,5 +253,104 @@ export class ReservationsService {
       idempotency_key: reservation.idempotencyKey,
       created_at: reservation.createdAt,
     };
+  }
+
+  async cancel(reservationId: string, userId: string) {
+    if (!isUUID(reservationId)) {
+      throw new BadRequestException('Invalid reservation ID');
+    }
+
+    return this.dataSource.transaction(async (manager) => {
+      /*
+       * 1. Lock the reservation row.
+       *
+       * This serializes concurrent cancellation attempts
+       * against the same reservation.
+       */
+      const reservation = await manager
+        .createQueryBuilder(Reservation, 'reservation')
+        .setLock('pessimistic_write')
+        .where('reservation.id = :reservationId', { reservationId })
+        .getOne();
+
+      if (!reservation) {
+        throw new NotFoundException('Reservation not found');
+      }
+
+      /*
+       * 2. Authorization.
+       *
+       * The user identity comes from the auth token,
+       * never from the request body.
+       */
+      if (reservation.userId !== userId) {
+        throw new ForbiddenException(
+          'Only the reservation owner can cancel it',
+        );
+      }
+
+      /*
+       * 3. Cancellation is only valid for an active
+       * confirmed reservation.
+       */
+      if (reservation.status !== ReservationStatus.CONFIRMED) {
+        throw new ConflictException('Reservation is already cancelled');
+      }
+
+      /*
+       * 4. Find and lock ALL seats belonging to this
+       * reservation.
+       *
+       * Lock them in deterministic order for the same
+       * deadlock-prevention principle used during reservation.
+       */
+      const reservationSeats = await manager
+        .createQueryBuilder(ReservationSeat, 'reservationSeat')
+        .innerJoinAndSelect('reservationSeat.seat', 'seat')
+        .where('reservationSeat.reservationId = :reservationId', {
+          reservationId,
+        })
+        .orderBy('seat.seatNumber', 'ASC')
+        .setLock('pessimistic_write')
+        .getMany();
+
+      /*
+       * 5. Mark reservation cancelled.
+       */
+      reservation.status = ReservationStatus.CANCELLED;
+
+      reservation.cancelledAt = new Date();
+
+      await manager.save(Reservation, reservation);
+
+      /*
+       * 6. Release ONLY the seats belonging to this
+       * reservation.
+       *
+       * The rows are locked, so a concurrent reservation
+       * cannot modify them until this transaction commits.
+       */
+      if (reservationSeats.length > 0) {
+        await manager
+          .createQueryBuilder()
+          .update(Seat)
+          .set({
+            status: SeatStatus.AVAILABLE,
+          })
+          .whereInIds(
+            reservationSeats.map((reservationSeat) => reservationSeat.seatId),
+          )
+          .execute();
+      }
+
+      /*
+       * 7. Everything commits atomically.
+       */
+      return {
+        id: reservation.id,
+        status: reservation.status,
+        cancelled_at: reservation.cancelledAt,
+      };
+    });
   }
 }

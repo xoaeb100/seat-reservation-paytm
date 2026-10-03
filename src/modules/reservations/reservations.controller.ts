@@ -14,12 +14,12 @@ import { AuthUser } from '../auth/auth.types';
 import { ReserveSeatsDto } from './dto/reserve-seats.dto';
 import { ReservationsService } from './reservations.service';
 
-@Controller()
+@Controller('reserve')
 export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) {}
 
   @UseGuards(AuthGuard)
-  @Post('reserve/:id')
+  @Post(':id')
   @HttpCode(HttpStatus.CREATED)
   reserve(
     @Param('id') showId: string,
@@ -27,5 +27,12 @@ export class ReservationsController {
     @Body() dto: ReserveSeatsDto,
   ) {
     return this.reservationsService.reserve(showId, user.id, dto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  cancel(@Param('id') reservationId: string, @CurrentUser() user: AuthUser) {
+    return this.reservationsService.cancel(reservationId, user.id);
   }
 }
