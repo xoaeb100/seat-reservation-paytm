@@ -18,17 +18,21 @@ import { DataSource, EntityManager } from 'typeorm';
 import { ReserveSeatsDto } from './dto/reserve-seats.dto';
 import { RESERVATION_ERRORS } from './errors/reservation-error';
 import { validate as isUUID } from 'uuid';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class ReservationsService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly metricsService: MetricsService,
+  ) {}
 
   async reserve(showId: string, userId: string, dto: ReserveSeatsDto) {
     if (!isUUID(showId)) {
       throw new BadRequestException('Invalid show ID');
     }
 
-    return this.dataSource.transaction(async (manager) => {
+    const response = await this.dataSource.transaction(async (manager) => {
       /*
        * 1. Verify that the show exists.
        */
@@ -106,8 +110,12 @@ export class ReservationsService {
 
       if (existingReservation) {
         if (existingReservation.requestHash !== requestHash) {
+          this.metricsService.reservationDeclined('idempotency_conflict');
+
           throw new ConflictException(RESERVATION_ERRORS.IDEMPOTENCY_CONFLICT);
         }
+
+        this.metricsService.reservationConfirmed();
 
         return this.getReservationResponse(manager, existingReservation.id);
       }
@@ -134,6 +142,8 @@ export class ReservationsService {
       const existingSeatCount = Number(result[0].count);
 
       if (existingSeatCount + seatNumbers.length > show.perUserLimit) {
+        this.metricsService.reservationDeclined('user_limit');
+
         throw new ConflictException(RESERVATION_ERRORS.USER_LIMIT_EXCEEDED);
       }
 
@@ -171,6 +181,8 @@ export class ReservationsService {
       );
 
       if (unavailableSeat) {
+        this.metricsService.reservationDeclined('seat_unavailable');
+
         throw new ConflictException(RESERVATION_ERRORS.SEAT_UNAVAILABLE);
       }
 
@@ -220,6 +232,9 @@ export class ReservationsService {
        */
       return this.getReservationResponse(manager, savedReservation.id);
     });
+    this.metricsService.reservationConfirmed();
+
+    return response;
   }
 
   private async getReservationResponse(

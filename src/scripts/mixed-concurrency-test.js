@@ -1,5 +1,5 @@
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const SHOW_ID = '44957a55-3e4b-4bc1-b660-7c3c6bafe94a';
+const SHOW_ID = '516955af-7077-4673-a113-84cb77dcde47';
 
 if (!SHOW_ID) {
   console.error('❌ SHOW_ID is required');
@@ -78,6 +78,7 @@ function assertNo5xx(results, name) {
 }
 
 async function attackHotSeat(seat, prefix) {
+  console.log('seat', seat, 'prefix', prefix);
   console.log(`\n🔥 HOT SEAT ATTACK: ${seat}`);
 
   const results = await Promise.all(
@@ -101,7 +102,9 @@ async function attackHotSeat(seat, prefix) {
   }
 
   console.log(`✅ ${seat}: exactly one winner`);
+  console.log(`pre Winner: ${successes}`);
 
+  console.log(`Winner: ${successes[0].body.id}`);
   return successes[0].body.id;
 }
 
