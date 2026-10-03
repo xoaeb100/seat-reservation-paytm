@@ -1,2 +1,4 @@
 docker exec -it seat-reservation-postgres psql -U postgres -d seat_reservation
 
+Stop-Service postgresql-x64-13
+Stop-Service postgresql-x64-17
