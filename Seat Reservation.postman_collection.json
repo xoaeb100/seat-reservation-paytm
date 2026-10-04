@@ -1,0 +1,281 @@
+{
+  "info": {
+    "_postman_id": "c1ea3f17-2c98-42da-a30d-a6b241209bf9",
+    "name": "Seat Reservation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "20538723"
+  },
+  "item": [
+    {
+      "name": "post shows",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "dev-admin-token",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"burst-debug\",\r\n  \"seats\": [\"A1\", \"A2\", \"A3\"],\r\n  \"price_in_paise\": 25000\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{liveUrl}}shows",
+          "host": [
+            "{{liveUrl}}shows"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "reservation",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "user-123",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"seats\": [\"A1\", \"A2\"],\r\n  \"idempotency_key\": \"test-90k0\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{liveUrl}}shows/{{showId}}/reserve",
+          "host": [
+            "{{liveUrl}}shows"
+          ],
+          "path": [
+            "{{showId}}",
+            "reserve"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "cancel",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "user-123",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{liveUrl}}reservations/{{reservationId}}/cancel",
+          "host": [
+            "{{liveUrl}}reservations"
+          ],
+          "path": [
+            "{{reservationId}}",
+            "cancel"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get show",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "user-123",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{liveUrl}}shows/{{showId}}",
+          "host": [
+            "{{liveUrl}}shows"
+          ],
+          "path": [
+            "{{showId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "health / live",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "user-123",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Request-Id",
+            "value": "test-123"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{liveUrl}}health/live",
+          "host": [
+            "{{liveUrl}}health"
+          ],
+          "path": [
+            "live"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "health / ready",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "user-123",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{liveUrl}}health/ready",
+          "host": [
+            "{{liveUrl}}health"
+          ],
+          "path": [
+            "ready"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "metrics",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "user-123",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{liveUrl}}metrics",
+          "host": [
+            "{{liveUrl}}metrics"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "showId",
+      "value": ""
+    },
+    {
+      "key": "local",
+      "value": ""
+    },
+    {
+      "key": "reservationId",
+      "value": ""
+    },
+    {
+      "key": "liveUrl",
+      "value": ""
+    }
+  ]
+}
