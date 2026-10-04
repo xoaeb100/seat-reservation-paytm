@@ -1,5 +1,5 @@
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const SHOW_ID = '4df3105f-1af5-47b4-a856-d172b9135bb6';
+const SHOW_ID = process.env.SHOW_ID;
 const REQUESTS_PER_SEAT = Number(process.env.REQUESTS_PER_SEAT || 250);
 
 const USER_ID = 'user-3';
@@ -173,9 +173,9 @@ async function main() {
       count: countStatus(groupB, 201),
     },
   ].filter((item) => item.count > 0);
-
   const exactlyOneWinner =
-    successfulGroups.length === 1 && successfulGroups[0].count === 1;
+    successfulGroups.length === 1 &&
+    successfulGroups[0].count === REQUESTS_PER_SEAT;
 
   const allRequestsHandled = results.length === totalRequests;
 
@@ -193,9 +193,20 @@ async function main() {
   console.log('========================================');
   console.log('CONCURRENCY ASSERTIONS');
   console.log('========================================');
+  const groupASuccesses = countStatus(groupA, 201);
+  const groupBSuccesses = countStatus(groupB, 201);
+
+  const groupAConflicts = countStatus(groupA, 409);
+  const groupBConflicts = countStatus(groupB, 409);
+
+  const exactlyOneBodyWon =
+    (groupASuccesses === REQUESTS_PER_SEAT &&
+      groupBConflicts === REQUESTS_PER_SEAT) ||
+    (groupBSuccesses === REQUESTS_PER_SEAT &&
+      groupAConflicts === REQUESTS_PER_SEAT);
 
   console.log(
-    `Exactly one request body won: ${exactlyOneWinner ? 'PASS' : 'FAIL'}`,
+    `Exactly one request body won: ${exactlyOneBodyWon ? 'PASS' : 'FAIL'}`,
   );
 
   console.log(

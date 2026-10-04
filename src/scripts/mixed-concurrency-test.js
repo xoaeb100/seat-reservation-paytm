@@ -1,6 +1,5 @@
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const SHOW_ID = '516955af-7077-4673-a113-84cb77dcde47';
-
+const SHOW_ID = process.env.SHOW_ID;
 if (!SHOW_ID) {
   console.error('❌ SHOW_ID is required');
   process.exit(1);

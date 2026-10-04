@@ -1,6 +1,6 @@
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-const SHOW_ID = 'ca9887c1-2353-4e12-91e9-0b2db3792db7';
+const SHOW_ID = process.env.SHOW_ID;
 const SEAT = process.env.SEAT || 'A3';
 const REQUEST_COUNT = Number(process.env.REQUEST_COUNT || 500);
 

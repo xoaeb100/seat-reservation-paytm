@@ -1,5 +1,5 @@
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const SHOW_ID = '0bf16c34-71f9-483f-b598-fb323da2656e';
+const SHOW_ID = process.env.SHOW_ID;
 const SEAT = process.env.SEAT || 'A1';
 const ROUNDS = Number(process.env.ROUNDS || 100);
 

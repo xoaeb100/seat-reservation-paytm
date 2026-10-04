@@ -1,7 +1,6 @@
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-const SHOW_ID = 'b5521abf-ab9b-416f-9107-e697b248c2e5';
-
+const SHOW_ID = process.env.SHOW_ID;
 const REQUESTS_PER_GROUP = Number(process.env.REQUESTS_PER_GROUP || 250);
 
 const USER_A = 'user-4';
