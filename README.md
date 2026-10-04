@@ -1,30 +1,47 @@
 # Seat Reservation at Scale
 
-A concurrency-safe seat reservation API built with NestJS, PostgreSQL, TypeORM and Docker.
+A concurrency-safe seat reservation API built with NestJS,
+PostgreSQL and TypeORM.
 
-## Architecture
+## Live API
 
-PostgreSQL is the source of truth for seat ownership and reservation consistency.
+https://seat-reservation-paytm.onrender.com
 
-Reservation transactions use:
+## Tech Stack
 
-- row-level `FOR UPDATE` locks on requested seats
-- deterministic seat ordering to prevent deadlocks
-- a per-user/show lock row to serialize concurrent requests
-- a unique idempotency constraint
-- all-or-nothing multi-seat reservations
+- Node.js / NestJS
+- TypeScript
+- PostgreSQL
+- TypeORM
+- Docker
+- Prometheus metrics
+
+## Running locally
+
+docker compose up --build
+
+## Health
+
+GET /health/live
+GET /health/ready
+
+## Metrics
+
+GET /metrics
+
+## Authentication
+
+Authorization: Bearer <token>
+
+Admin:
+ADMIN_TOKEN
+
+Users:
+user-<id>
 
 ## API
 
-### Create show
-
-POST `/shows`
-
-Authorization: admin bearer token.
-
-```json
-{
-  "name": "friday-night",
-  "seats": ["A1", "A2", "A3"],
-  "price_in_paise": 25000
-}
+POST /shows
+POST /shows/:id/reserve
+POST /reservations/:id/cancel
+GET /shows/:id
