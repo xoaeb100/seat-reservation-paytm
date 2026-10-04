@@ -32,7 +32,7 @@ export class ReservationsService {
       throw new BadRequestException('Invalid show ID');
     }
 
-    const response = await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       /*
        * 1. Verify that the show exists.
        */
@@ -97,8 +97,11 @@ export class ReservationsService {
       /*
        * 5. Check idempotency AFTER acquiring the user/show lock.
        *
-       * This also solves the concurrent same-key case:
-       * request #2 waits for request #1, then sees its reservation.
+       * This solves the concurrent same-key case:
+       *
+       * Request #1 creates the reservation.
+       * Request #2 waits for the lock.
+       * Request #2 then sees Request #1's reservation.
        */
       const existingReservation = await manager.findOne(Reservation, {
         where: {
@@ -109,15 +112,22 @@ export class ReservationsService {
       });
 
       if (existingReservation) {
+        /*
+         * Same idempotency key but different request body.
+         */
         if (existingReservation.requestHash !== requestHash) {
           this.metricsService.reservationDeclined('idempotency_conflict');
 
           throw new ConflictException(RESERVATION_ERRORS.IDEMPOTENCY_CONFLICT);
         }
 
-        this.metricsService.reservationConfirmed();
-
-        return this.getReservationResponse(manager, existingReservation.id);
+        return {
+          response: await this.getReservationResponse(
+            manager,
+            existingReservation.id,
+          ),
+          created: false,
+        };
       }
 
       /*
@@ -125,8 +135,11 @@ export class ReservationsService {
        *
        * We count reservation_seats rather than reservations because
        * one reservation may contain multiple seats.
+       *
+       * The user/show lock above guarantees that concurrent requests
+       * from this user cannot bypass this limit.
        */
-      const result = await manager.query(
+      const reservationCountResult = await manager.query(
         `
         SELECT COUNT(*)::int AS "count"
         FROM "reservation_seats" rs
@@ -139,7 +152,7 @@ export class ReservationsService {
         [showId, userId],
       );
 
-      const existingSeatCount = Number(result[0].count);
+      const existingSeatCount = Number(reservationCountResult[0].count);
 
       if (existingSeatCount + seatNumbers.length > show.perUserLimit) {
         this.metricsService.reservationDeclined('user_limit');
@@ -150,7 +163,7 @@ export class ReservationsService {
       /*
        * 7. Lock ALL requested seats in deterministic order.
        *
-       * PostgreSQL now prevents another transaction from changing
+       * PostgreSQL prevents another transaction from changing
        * these seat rows until this transaction finishes.
        */
       const seats = await manager
@@ -167,6 +180,8 @@ export class ReservationsService {
        * 8. Make sure every requested seat actually exists.
        */
       if (seats.length !== seatNumbers.length) {
+        this.metricsService.reservationDeclined('seat_not_found');
+
         throw new ConflictException(RESERVATION_ERRORS.SEAT_NOT_FOUND);
       }
 
@@ -226,15 +241,23 @@ export class ReservationsService {
         .execute();
 
       /*
-       * 13. Return the reservation.
-       *
-       * Everything above is part of the same transaction.
+       * 13. Return the response AND tell the caller that
+       * a new reservation was created.
        */
-      return this.getReservationResponse(manager, savedReservation.id);
+      return {
+        response: await this.getReservationResponse(
+          manager,
+          savedReservation.id,
+        ),
+        created: true,
+      };
     });
-    this.metricsService.reservationConfirmed();
 
-    return response;
+    if (result.created) {
+      this.metricsService.reservationConfirmed();
+    }
+
+    return result.response;
   }
 
   private async getReservationResponse(
